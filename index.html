@@ -1,0 +1,705 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Conversor SINFRA → Blip</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  :root{
+    --bg:#eef1ef;
+    --surface:#ffffff;
+    --surface-2:#f5f7f6;
+    --ink:#16211d;
+    --ink-soft:#5a6b64;
+    --line:#d7ded9;
+    --accent:#0f766e;
+    --accent-strong:#0b5b54;
+    --accent-soft:#d6eae6;
+    --ok:#15803d;
+    --ok-soft:#dcf2e3;
+    --warn:#b45309;
+    --warn-soft:#fbeBCF;
+    --warn-soft:#f9ecd2;
+    --danger:#b91c1c;
+    --danger-soft:#f7dede;
+    --shadow:0 1px 2px rgba(22,33,29,.06),0 8px 24px rgba(22,33,29,.06);
+    color-scheme:light;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#0e1512;
+      --surface:#15201c;
+      --surface-2:#1a2622;
+      --ink:#e7efec;
+      --ink-soft:#9db1a9;
+      --line:#2a3a34;
+      --accent:#4cc4b6;
+      --accent-strong:#6fd6c9;
+      --accent-soft:#183a35;
+      --ok:#4ade80;
+      --ok-soft:#173324;
+      --warn:#f0b45e;
+      --warn-soft:#3a2d16;
+      --danger:#f87171;
+      --danger-soft:#3a1c1c;
+      --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.35);
+      color-scheme:dark;
+    }
+  }
+  :root[data-theme="dark"]{
+      --bg:#0e1512;
+      --surface:#15201c;
+      --surface-2:#1a2622;
+      --ink:#e7efec;
+      --ink-soft:#9db1a9;
+      --line:#2a3a34;
+      --accent:#4cc4b6;
+      --accent-strong:#6fd6c9;
+      --accent-soft:#183a35;
+      --ok:#4ade80;
+      --ok-soft:#173324;
+      --warn:#f0b45e;
+      --warn-soft:#3a2d16;
+      --danger:#f87171;
+      --danger-soft:#3a1c1c;
+      --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.35);
+      color-scheme:dark;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:"IBM Plex Sans",system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+    font-size:15px;
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1040px;margin:0 auto;padding-block:28px 64px;padding-left:16px;padding-right:16px}
+  header.top{display:flex;align-items:flex-start;gap:14px;flex-wrap:wrap}
+  .mark{
+    width:44px;height:44px;flex:none;border-radius:11px;
+    background:linear-gradient(150deg,var(--accent),var(--accent-strong));
+    display:grid;place-items:center;color:#fff;font-weight:700;font-size:19px;
+    box-shadow:var(--shadow);
+  }
+  h1{font-size:22px;line-height:1.2;margin:0;letter-spacing:-.01em;text-wrap:balance}
+  .sub{color:var(--ink-soft);margin:2px 0 0;font-size:14px}
+  .card{
+    background:var(--surface);border:1px solid var(--line);border-radius:16px;
+    box-shadow:var(--shadow);padding:20px;margin-top:20px;
+  }
+  .card h2{font-size:13px;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-soft);margin:0 0 14px;font-weight:600}
+
+  /* dropzone */
+  .drop{
+    border:2px dashed var(--line);border-radius:14px;background:var(--surface-2);
+    padding:30px 20px;text-align:center;cursor:pointer;transition:.15s border-color,.15s background;
+  }
+  .drop:hover,.drop.hot{border-color:var(--accent);background:var(--accent-soft)}
+  .drop .big{font-weight:600;font-size:16px;margin:0}
+  .drop .small{color:var(--ink-soft);font-size:13px;margin:6px 0 0}
+  .drop svg{color:var(--accent);margin-bottom:6px}
+
+  .files{list-style:none;margin:14px 0 0;padding:0;display:flex;flex-direction:column;gap:8px}
+  .files li{
+    display:flex;align-items:center;gap:10px;background:var(--surface-2);
+    border:1px solid var(--line);border-radius:10px;padding:9px 12px;font-size:14px;
+  }
+  .files .fn{font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .files .meta{color:var(--ink-soft);font-size:12.5px;margin-left:auto;white-space:nowrap;font-variant-numeric:tabular-nums}
+  .files .rm{
+    border:none;background:transparent;color:var(--ink-soft);cursor:pointer;font-size:18px;
+    line-height:1;padding:2px 6px;border-radius:6px;flex:none;
+  }
+  .files .rm:hover{background:var(--danger-soft);color:var(--danger)}
+  .files .badge{flex:none}
+
+  /* controls row */
+  .opts{display:flex;flex-wrap:wrap;gap:18px 22px;align-items:center;margin-top:16px}
+  .opt{display:flex;align-items:center;gap:9px;font-size:14px}
+  .opt label{color:var(--ink);cursor:pointer;user-select:none}
+  .opt input[type=checkbox]{width:17px;height:17px;accent-color:var(--accent);cursor:pointer}
+  .ddd{display:flex;align-items:center;gap:8px;font-size:14px}
+  .ddd input{
+    width:64px;border:1px solid var(--line);border-radius:8px;padding:7px 9px;background:var(--surface);
+    color:var(--ink);font-family:"IBM Plex Mono",monospace;font-size:14px;text-align:center;
+  }
+  .ddd input:focus-visible,.drop:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+  /* stats */
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+  @media (max-width:640px){.stats{grid-template-columns:repeat(2,1fr)}}
+  .stat{background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:14px 15px}
+  .stat .n{font-size:26px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-.02em;line-height:1.1}
+  .stat .l{font-size:12.5px;color:var(--ink-soft);margin-top:3px}
+  .stat.ok .n{color:var(--ok)}
+  .stat.warn .n{color:var(--warn)}
+
+  /* buttons */
+  .actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}
+  button.btn{
+    font:inherit;font-weight:600;border-radius:10px;padding:11px 18px;cursor:pointer;border:1px solid transparent;
+    display:inline-flex;align-items:center;gap:8px;
+  }
+  button.btn:disabled{opacity:.45;cursor:not-allowed}
+  .btn.primary{background:var(--accent);color:#fff}
+  .btn.primary:hover:not(:disabled){background:var(--accent-strong)}
+  .btn.ghost{background:transparent;color:var(--accent);border-color:var(--line)}
+  .btn.ghost:hover:not(:disabled){background:var(--accent-soft);border-color:var(--accent)}
+  .btn:focus-visible{outline:2px solid var(--accent-strong);outline-offset:2px}
+
+  /* preview table */
+  .tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:12px;margin-top:4px}
+  table{border-collapse:collapse;width:100%;font-size:13px;min-width:720px}
+  thead th{
+    background:var(--surface-2);text-align:left;padding:9px 12px;position:sticky;top:0;
+    font-weight:600;color:var(--ink);border-bottom:1px solid var(--line);white-space:nowrap;
+  }
+  thead th .k{display:block;font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--accent);font-weight:500}
+  tbody td{padding:8px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+  tbody tr:last-child td{border-bottom:none}
+  tbody tr:nth-child(even){background:var(--surface-2)}
+  td.num{font-family:"IBM Plex Mono",monospace;white-space:nowrap;font-variant-numeric:tabular-nums}
+  td.empty{color:var(--danger);font-family:"IBM Plex Mono",monospace}
+  .rowflag{color:var(--warn)}
+  .previewnote{color:var(--ink-soft);font-size:12.5px;margin:10px 2px 0}
+
+  .status{margin-top:12px;font-size:14px;min-height:1.2em}
+  .status.err{color:var(--danger)}
+  .status.ok{color:var(--ok)}
+  .status.warn{color:var(--warn)}
+
+  details.rules{margin-top:20px}
+  details.rules summary{cursor:pointer;font-size:13.5px;color:var(--accent);font-weight:600;list-style:none}
+  details.rules summary::-webkit-details-marker{display:none}
+  details.rules summary::before{content:"▸ ";display:inline-block}
+  details.rules[open] summary::before{content:"▾ "}
+  details.rules .body{font-size:13.5px;color:var(--ink);margin-top:10px;line-height:1.6}
+  details.rules code{font-family:"IBM Plex Mono",monospace;background:var(--surface-2);padding:1px 5px;border-radius:5px;font-size:12.5px}
+  details.rules ul{margin:8px 0;padding-left:20px}
+  details.rules li{margin:4px 0}
+  .foot{color:var(--ink-soft);font-size:12px;text-align:center;margin-top:34px}
+  .hidden{display:none!important}
+  .unithint{color:var(--ink-soft);font-size:13.5px;margin:0 0 14px}
+  .unithint code{font-family:"IBM Plex Mono",monospace;background:var(--surface-2);padding:1px 5px;border-radius:5px;font-size:12.5px}
+  .unitlist{display:flex;flex-direction:column;gap:10px}
+  .unitrow{display:grid;grid-template-columns:200px 1fr auto;gap:10px;align-items:start}
+  @media (max-width:640px){.unitrow{grid-template-columns:1fr}}
+  .unitrow input,.unitrow textarea{
+    width:100%;border:1px solid var(--line);border-radius:9px;padding:9px 11px;background:var(--surface);
+    color:var(--ink);font-family:inherit;font-size:13.5px;resize:vertical;
+  }
+  .unitrow .code{font-family:"IBM Plex Mono",monospace;font-weight:500}
+  .unitrow textarea{min-height:42px;line-height:1.4}
+  .unitrow input:focus-visible,.unitrow textarea:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+  .unitrow.missing textarea{border-color:var(--warn);background:var(--warn-soft)}
+  .unitrow .del{border:1px solid var(--line);background:transparent;color:var(--ink-soft);cursor:pointer;
+    border-radius:8px;padding:8px 11px;font-size:15px;line-height:1;height:40px}
+  .unitrow .del:hover{background:var(--danger-soft);color:var(--danger);border-color:var(--danger)}
+  .badge{
+    font-size:11px;font-weight:600;padding:2px 8px;border-radius:999px;white-space:nowrap;
+    background:var(--accent-soft);color:var(--accent-strong);
+  }
+  .badge.warn{background:var(--warn-soft);color:var(--warn)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div class="mark">B</div>
+    <div>
+      <h1>Conversor SINFRA → Blip</h1>
+      <p class="sub">Converte a planilha de exames do SINFRA (OCI) para o modelo oficial de disparo do Blip.</p>
+    </div>
+  </header>
+
+  <!-- Upload -->
+  <section class="card">
+    <h2>1. Envie os arquivos</h2>
+    <div class="drop" id="drop" tabindex="0" role="button" aria-label="Selecionar arquivos CSV">
+      <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4"/><path d="m7 9 5-5 5 5"/><path d="M5 20h14"/></svg>
+      <p class="big">Arraste os CSV aqui ou clique para escolher</p>
+      <p class="small">Aceita vários arquivos do SINFRA de uma vez (.csv). Todos são unidos em uma saída.</p>
+    </div>
+    <input type="file" id="file" accept=".csv,text/csv" multiple class="hidden">
+    <ul class="files" id="fileList"></ul>
+
+    <div class="opts" id="opts">
+      <div class="opt">
+        <input type="checkbox" id="onlyValid" checked>
+        <label for="onlyValid">Baixar apenas linhas com celular válido</label>
+      </div>
+      <div class="ddd">
+        <label for="ddd">DDD padrão</label>
+        <input type="text" id="ddd" value="16" inputmode="numeric" maxlength="2" aria-label="DDD padrão para números sem código de área">
+      </div>
+    </div>
+    <div class="status" id="status" aria-live="polite"></div>
+  </section>
+
+  <!-- Unidades -->
+  <section class="card">
+    <h2>2. Unidades e endereços (VAR5)</h2>
+    <p class="unithint">O <code>VAR5</code> sai com <b>nome + endereço</b> conforme a tabela abaixo. Edite à vontade — fica salvo neste navegador. Unidades novas que aparecerem no CSV são adicionadas aqui automaticamente para você preencher o endereço.</p>
+    <div id="unitList" class="unitlist"></div>
+    <div class="actions" style="margin-top:12px">
+      <button class="btn ghost" id="addUnit">+ Adicionar unidade</button>
+      <button class="btn ghost" id="resetUnits">Restaurar padrão</button>
+    </div>
+  </section>
+
+  <!-- Result -->
+  <section class="card hidden" id="resultCard">
+    <h2>3. Resultado da conversão</h2>
+    <div class="stats">
+      <div class="stat"><div class="n" id="stTotal">0</div><div class="l">Linhas lidas</div></div>
+      <div class="stat ok"><div class="n" id="stValid">0</div><div class="l">Com celular válido</div></div>
+      <div class="stat warn"><div class="n" id="stNo">0</div><div class="l">Sem celular</div></div>
+      <div class="stat"><div class="n" id="stOut">0</div><div class="l">No arquivo de saída</div></div>
+    </div>
+
+    <div class="actions">
+      <button class="btn primary" id="download">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v12"/><path d="m7 11 5 5 5-5"/><path d="M5 20h14"/></svg>
+        Baixar CSV Blip
+      </button>
+      <button class="btn ghost" id="copy">Copiar para a área de transferência</button>
+    </div>
+
+    <h2 style="margin-top:24px">Prévia</h2>
+    <div class="tablewrap">
+      <table id="preview"></table>
+    </div>
+    <p class="previewnote" id="previewNote"></p>
+  </section>
+
+  <details class="rules">
+    <summary>Regras de conversão aplicadas</summary>
+    <div class="body">
+      O arquivo de saída usa <code>;</code> como separador e repete as duas linhas de cabeçalho do modelo oficial
+      (<code>NUMERO;VAR1;VAR2;VAR3;VAR4;VAR5</code> e a linha descritiva).
+      As colunas são localizadas pelo <em>nome</em> no cabeçalho do SINFRA, então a ordem das colunas não importa.
+      <ul>
+        <li><code>NUMERO</code> ← <b>Contatos Paciente</b>: usa o celular (11 dígitos começando com 9 após o DDD). Se houver dois números, usa o primeiro celular válido. Sai no formato <code>5516988187599</code> (55 + DDD + número). Fixos são ignorados.</li>
+        <li><code>VAR1</code> ← <b>Paciente</b>: nome sem o código do prontuário (remove <code>123456 - </code>).</li>
+        <li><code>VAR2</code> ← <b>Exame</b>: nome sem o código do procedimento (remove <code>0211020036 </code>).</li>
+        <li><code>VAR3</code> ← <b>Data do Exame</b>: apenas a data (<code>dd/mm/aaaa</code>).</li>
+        <li><code>VAR4</code> ← <b>Data do Exame</b>: apenas a hora (<code>hh:mm</code>).</li>
+        <li><code>VAR5</code> ← <b>Unidade exame</b>: mantida como está.</li>
+      </ul>
+      Tudo roda no seu navegador — nenhum dado é enviado para a internet.
+    </div>
+  </details>
+
+  <p class="foot">Feito para o Departamento de Média e Alta Densidade Tecnológica · SMS Franca/SP</p>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var loaded = [];        // {name, rows:[obj], count}
+  var lastOutput = "";    // csv text
+  var lastFileName = "modelo_blip_convertido.csv";
+
+  // ---- Unidades (de-para nome+endereço) ----
+  var DEFAULT_UNITS=[
+    {key:"NGA-16", full:"NGA 16 - Nucleo de Gestao Assistencial R. Aluisio Pacheco Ferreira, 4010 - Jardim Maria Gabriela"},
+    {key:"NIKKEI DIAGNOSTICO POR IMAGEM", full:"Nikkei Diagnóstico por Imagem R. Ana Custodio Parisse, 1250 - Bairro Sao Joaquim Tel 3708-0900"},
+    {key:"CDI - CENTRO DE DIAGNÓSTICO POR IMAGEM", full:"CDI - CENTRO DE DIAGNÓSTICO POR IMAGEM Avenida Dr. Flavio Rocha, 4780. Jd. Redentor."}
+  ];
+  var STORE_KEY="conversor_blip_unidades_v1";
+  var units = loadUnits();
+
+  function loadUnits(){
+    try{
+      var raw=localStorage.getItem(STORE_KEY);
+      if(raw){ var u=JSON.parse(raw); if(Array.isArray(u)&&u.length) return u; }
+    }catch(e){}
+    return DEFAULT_UNITS.map(function(u){return {key:u.key,full:u.full};});
+  }
+  function saveUnits(){ try{ localStorage.setItem(STORE_KEY,JSON.stringify(units)); }catch(e){} }
+  function unitLookup(raw){
+    var k=norm(raw);
+    for(var i=0;i<units.length;i++){ if(norm(units[i].key)===k){ return units[i].full.trim()||raw; } }
+    return raw; // sem cadastro: mantém o valor original
+  }
+  function unitIsMapped(raw){
+    var k=norm(raw);
+    for(var i=0;i<units.length;i++){ if(norm(units[i].key)===k) return !!units[i].full.trim(); }
+    return false;
+  }
+
+  var HEADER_MAP = {
+    contato:   ["contatos paciente","contato paciente","contatos","telefone","celular"],
+    paciente:  ["paciente","nome","nome paciente"],
+    exame:     ["exame","procedimento"],
+    dataexame: ["data do exame","data exame","data/hora exame"],
+    unidade:   ["unidade exame","unidade do exame","unidade executante exame"]
+  };
+
+  function norm(s){
+    return (s||"").toString().toLowerCase()
+      .normalize("NFD").replace(/[̀-ͯ]/g,"")
+      .replace(/\s+/g," ").trim();
+  }
+
+  // ---- CSV parsing (handles quotes, auto delimiter) ----
+  function detectDelimiter(text){
+    var firstLine = text.split(/\r?\n/)[0] || "";
+    var c = (firstLine.match(/,/g)||[]).length;
+    var s = (firstLine.match(/;/g)||[]).length;
+    var t = (firstLine.match(/\t/g)||[]).length;
+    if(t>=c && t>=s) return "\t";
+    return s>c ? ";" : ",";
+  }
+
+  function parseCSV(text, delim){
+    var rows=[], row=[], field="", i=0, inq=false, n=text.length;
+    // strip BOM
+    if(text.charCodeAt(0)===0xFEFF) text=text.slice(1), n=text.length;
+    while(i<n){
+      var ch=text[i];
+      if(inq){
+        if(ch==='"'){
+          if(text[i+1]==='"'){field+='"';i+=2;continue;}
+          inq=false;i++;continue;
+        }
+        field+=ch;i++;continue;
+      }
+      if(ch==='"'){inq=true;i++;continue;}
+      if(ch===delim){row.push(field);field="";i++;continue;}
+      if(ch==='\n'){row.push(field);rows.push(row);row=[];field="";i++;continue;}
+      if(ch==='\r'){i++;continue;}
+      field+=ch;i++;
+    }
+    if(field.length>0 || row.length>0){row.push(field);rows.push(row);}
+    return rows;
+  }
+
+  function decodeBuffer(buf){
+    var bytes=new Uint8Array(buf);
+    // Try UTF-8 strictly; if it throws or produces replacement chars, fall back to windows-1252
+    try{
+      var u=new TextDecoder("utf-8",{fatal:false}).decode(bytes);
+      if(u.indexOf("�")===-1) return u;
+    }catch(e){}
+    try{ return new TextDecoder("windows-1252").decode(bytes); }
+    catch(e){ return new TextDecoder("iso-8859-1").decode(bytes); }
+  }
+
+  // ---- Field transforms ----
+  function cleanPatientName(v){
+    return (v||"").replace(/^\s*\d+\s*-\s*/,"").trim();
+  }
+  function cleanExam(v){
+    var s=(v||"").replace(/^\s*\d{3,}\s+/,"").trim();
+    // ECG -> ELETROCARDIOGRAMA (qualquer ocorrência, ignorando maiúsculas)
+    s=s.replace(/\bECG\b/gi,"ELETROCARDIOGRAMA");
+    return s;
+  }
+  function splitDateTime(v){
+    v=(v||"").trim();
+    var m=v.match(/(\d{1,2}\/\d{1,2}\/\d{2,4})/);
+    var date=m?m[1]:"";
+    var t=v.match(/(\d{1,2}:\d{2})/);
+    var time=t?t[1]:"";
+    return {date:date,time:time};
+  }
+  function extractMobile(contact, defaultDDD){
+    contact=(contact||"").trim();
+    if(!contact) return "";
+    var parts=contact.split(/\s+-\s*/); // separates the two numbers, keeps internal dashes
+    var fallback="";
+    for(var p=0;p<parts.length;p++){
+      var d=parts[p].replace(/\D/g,"");
+      if(!d) continue;
+      // 11 digits: DD + 9 digits, mobile if 3rd digit is 9
+      if(d.length===11 && d[2]==="9") return "55"+d;
+      // 10 digits without leading 9 mobile marker but maybe DD + 9XXXXXXXX (9 digits) -> handled above; skip landlines
+      // 9 digits starting with 9, no DDD -> use default DDD
+      if(d.length===9 && d[0]==="9" && defaultDDD) { if(!fallback) fallback="55"+defaultDDD+d; }
+      // 8-digit mobile written without the leading 9, with DDD (10 digits) starting after DD with 9? already not matched
+    }
+    return fallback;
+  }
+
+  function getIndex(headerRow){
+    var idx={};
+    var normed=headerRow.map(norm);
+    Object.keys(HEADER_MAP).forEach(function(key){
+      var opts=HEADER_MAP[key];
+      for(var j=0;j<normed.length;j++){
+        if(opts.indexOf(normed[j])!==-1){ idx[key]=j; break; }
+      }
+    });
+    return idx;
+  }
+
+  function processRows(matrix){
+    // find header row (first non-empty row containing "paciente")
+    var hIdx=-1;
+    for(var r=0;r<matrix.length;r++){
+      var rr=matrix[r].map(norm);
+      if(rr.indexOf("paciente")!==-1){ hIdx=r; break; }
+    }
+    if(hIdx===-1) hIdx=0;
+    var idx=getIndex(matrix[hIdx]);
+    if(idx.contato===undefined || idx.paciente===undefined){
+      return {error:"Não encontrei as colunas 'Contatos Paciente' e 'Paciente' no arquivo. Verifique se é o CSV exportado do SINFRA."};
+    }
+    var out=[];
+    for(var i=hIdx+1;i<matrix.length;i++){
+      var row=matrix[i];
+      if(!row || row.every(function(c){return !c || !c.trim();})) continue;
+      var pac=cleanPatientName(row[idx.paciente]);
+      if(!pac) continue;
+      var dt=splitDateTime(idx.dataexame!==undefined?row[idx.dataexame]:"");
+      out.push({
+        _contato: (idx.contato!==undefined?row[idx.contato]:""),
+        _unidade: (idx.unidade!==undefined?row[idx.unidade]:"").trim(),
+        numero:  extractMobile(idx.contato!==undefined?row[idx.contato]:"", (document.getElementById("ddd").value||"").replace(/\D/g,"")),
+        var1: pac,
+        var2: cleanExam(idx.exame!==undefined?row[idx.exame]:""),
+        var3: dt.date,
+        var4: dt.time,
+        var5: (idx.unidade!==undefined?row[idx.unidade]:"").trim()
+      });
+    }
+    return {rows:out};
+  }
+
+  // ---- CSV building (semicolon, Blip model) ----
+  function esc(v){
+    v=(v==null?"":String(v));
+    if(/[;"\n\r]/.test(v)) return '"'+v.replace(/"/g,'""')+'"';
+    return v;
+  }
+  function buildCSV(rows, onlyValid){
+    var lines=[];
+    lines.push("NUMERO;VAR1;VAR2;VAR3;VAR4;VAR5");
+    lines.push("Contatos Paciente;Paciente;Exame;Data do Exame;Data do Exame;Unidade exame");
+    rows.forEach(function(r){
+      if(onlyValid && !r.numero) return;
+      lines.push([r.numero,r.var1,r.var2,r.var3,r.var4,r.var5].map(esc).join(";"));
+    });
+    return lines.join("\r\n");
+  }
+
+  // ---- UI ----
+  var $=function(id){return document.getElementById(id);};
+  var drop=$("drop"), fileInput=$("file"), fileList=$("fileList"),
+      status=$("status"), resultCard=$("resultCard"),
+      onlyValid=$("onlyValid"), dddInput=$("ddd");
+
+  drop.addEventListener("click",function(){fileInput.click();});
+  drop.addEventListener("keydown",function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();fileInput.click();}});
+  ["dragenter","dragover"].forEach(function(ev){
+    drop.addEventListener(ev,function(e){e.preventDefault();drop.classList.add("hot");});
+  });
+  ["dragleave","drop"].forEach(function(ev){
+    drop.addEventListener(ev,function(e){e.preventDefault();drop.classList.remove("hot");});
+  });
+  drop.addEventListener("drop",function(e){
+    if(e.dataTransfer && e.dataTransfer.files) handleFiles(e.dataTransfer.files);
+  });
+  fileInput.addEventListener("change",function(){handleFiles(fileInput.files);fileInput.value="";});
+  onlyValid.addEventListener("change",recompute);
+  dddInput.addEventListener("input",function(){dddInput.value=dddInput.value.replace(/\D/g,"").slice(0,2);});
+  dddInput.addEventListener("change",function(){ if(loaded.length) reparseAll(); });
+
+  function setStatus(msg,cls){status.textContent=msg||"";status.className="status"+(cls?" "+cls:"");}
+
+  function handleFiles(fileObjs){
+    var arr=Array.prototype.slice.call(fileObjs).filter(function(f){return /\.csv$/i.test(f.name)||f.type.indexOf("csv")!==-1||f.type==="text/plain"||f.type==="";});
+    if(!arr.length){setStatus("Envie arquivos .csv exportados do SINFRA.","err");return;}
+    var pending=arr.length;
+    setStatus("Lendo "+arr.length+" arquivo(s)…");
+    arr.forEach(function(f){
+      var reader=new FileReader();
+      reader.onload=function(){
+        try{
+          var text=decodeBuffer(reader.result);
+          var delim=detectDelimiter(text);
+          var matrix=parseCSV(text,delim);
+          var res=processRows(matrix);
+          if(res.error){ setStatus(f.name+": "+res.error,"err"); }
+          else{ loaded.push({name:f.name,rows:res.rows}); }
+        }catch(err){ setStatus("Erro ao ler "+f.name+": "+err.message,"err"); }
+        if(--pending===0){ renderFiles(); recompute(); }
+      };
+      reader.onerror=function(){ if(--pending===0){renderFiles();recompute();} };
+      reader.readAsArrayBuffer(f);
+    });
+  }
+
+  function reparseAll(){
+    // re-run transforms is only needed for DDD change; simplest: recompute from stored raw isn't kept,
+    // so we just recompute output (DDD affected numero already computed at parse). To honor DDD change,
+    // ask user to re-add. Keep simple: recompute view.
+    recompute();
+  }
+
+  function removeFile(i){ loaded.splice(i,1); renderFiles(); recompute(); }
+
+  function renderFiles(){
+    fileList.innerHTML="";
+    loaded.forEach(function(item,i){
+      var li=document.createElement("li");
+      var valid=item.rows.filter(function(r){return r.numero;}).length;
+      li.innerHTML='<span class="fn"></span>'+
+        '<span class="badge '+(valid<item.rows.length?"warn":"")+'">'+valid+'/'+item.rows.length+' c/ celular</span>'+
+        '<span class="meta">'+item.rows.length+' linhas</span>'+
+        '<button class="rm" title="Remover" aria-label="Remover">×</button>';
+      li.querySelector(".fn").textContent=item.name;
+      li.querySelector(".rm").addEventListener("click",function(){removeFile(i);});
+      fileList.appendChild(li);
+    });
+  }
+
+  function recompute(){
+    var all=[];
+    var ddd=(dddInput.value||"").replace(/\D/g,"");
+    loaded.forEach(function(it){all=all.concat(it.rows);});
+
+    // auto-cadastra unidades novas encontradas no CSV
+    var added=false;
+    all.forEach(function(r){
+      if(!r._unidade) return;
+      var k=norm(r._unidade);
+      var exists=units.some(function(u){return norm(u.key)===k;});
+      if(!exists){ units.push({key:r._unidade,full:""}); added=true; }
+    });
+    if(added){ saveUnits(); renderUnits(); }
+
+    // recompute numero (DDD live) e VAR5 (endereço) a cada mudança
+    all.forEach(function(r){
+      r.numero=extractMobile(r._contato,ddd);
+      r.var5=unitLookup(r._unidade);
+    });
+
+    if(!all.length){ resultCard.classList.add("hidden"); if(loaded.length===0) setStatus(""); return; }
+
+    var valid=all.filter(function(r){return r.numero;}).length;
+    var no=all.length-valid;
+    var ov=onlyValid.checked;
+    var outCount=ov?valid:all.length;
+
+    var semEnd=[];
+    all.forEach(function(r){ if(r._unidade && !unitIsMapped(r._unidade) && semEnd.indexOf(r._unidade)===-1) semEnd.push(r._unidade); });
+
+    $("stTotal").textContent=all.length;
+    $("stValid").textContent=valid;
+    $("stNo").textContent=no;
+    $("stOut").textContent=outCount;
+
+    lastOutput=buildCSV(all,ov);
+    lastFileName= loaded.length===1
+      ? loaded[0].name.replace(/\.csv$/i,"")+"_blip.csv"
+      : "modelo_blip_convertido.csv";
+
+    renderPreview(all,ov);
+    resultCard.classList.remove("hidden");
+    if(semEnd.length){
+      setStatus("Conversão pronta ("+outCount+" linha(s)). Atenção: "+semEnd.length+" unidade(s) sem endereço cadastrado — preencha em \"Unidades e endereços\": "+semEnd.join(", "),"warn");
+    }else{
+      setStatus("Conversão pronta. "+outCount+" linha(s) no arquivo de saída.","ok");
+    }
+  }
+
+  // ---- Editor de unidades ----
+  var unitList=$("unitList");
+  function renderUnits(){
+    unitList.innerHTML="";
+    units.forEach(function(u,i){
+      var row=document.createElement("div");
+      row.className="unitrow"+(!u.full.trim()?" missing":"");
+      row.innerHTML='<input class="code" type="text" placeholder="Como vem no SINFRA (ex.: NGA-16)">'+
+                    '<textarea placeholder="Nome + endereço completo (vai para o VAR5)"></textarea>'+
+                    '<button class="del" title="Remover" aria-label="Remover">×</button>';
+      var codeEl=row.querySelector(".code"), fullEl=row.querySelector("textarea");
+      codeEl.value=u.key; fullEl.value=u.full;
+      codeEl.addEventListener("input",function(){units[i].key=codeEl.value;saveUnits();recompute();});
+      fullEl.addEventListener("input",function(){
+        units[i].full=fullEl.value;saveUnits();
+        row.classList.toggle("missing",!fullEl.value.trim());
+        recompute();
+      });
+      row.querySelector(".del").addEventListener("click",function(){units.splice(i,1);saveUnits();renderUnits();recompute();});
+      unitList.appendChild(row);
+    });
+  }
+  $("addUnit").addEventListener("click",function(){units.push({key:"",full:""});saveUnits();renderUnits();});
+  $("resetUnits").addEventListener("click",function(){
+    units=DEFAULT_UNITS.map(function(u){return {key:u.key,full:u.full};});
+    saveUnits();renderUnits();recompute();
+  });
+
+  function renderPreview(rows,ov){
+    var shown=rows.filter(function(r){return ov? !!r.numero : true;});
+    var limit=50;
+    var head='<thead><tr>'+
+      '<th><span class="k">NUMERO</span>Contatos Paciente</th>'+
+      '<th><span class="k">VAR1</span>Paciente</th>'+
+      '<th><span class="k">VAR2</span>Exame</th>'+
+      '<th><span class="k">VAR3</span>Data</th>'+
+      '<th><span class="k">VAR4</span>Hora</th>'+
+      '<th><span class="k">VAR5</span>Unidade exame</th>'+
+      '</tr></thead>';
+    var body='<tbody>';
+    shown.slice(0,limit).forEach(function(r){
+      body+='<tr>'+
+        (r.numero?'<td class="num">'+r.numero+'</td>':'<td class="empty">— sem celular</td>')+
+        '<td>'+escapeHtml(r.var1)+'</td>'+
+        '<td>'+escapeHtml(r.var2)+'</td>'+
+        '<td class="num">'+escapeHtml(r.var3)+'</td>'+
+        '<td class="num">'+escapeHtml(r.var4)+'</td>'+
+        '<td>'+escapeHtml(r.var5)+'</td>'+
+      '</tr>';
+    });
+    body+='</tbody>';
+    $("preview").innerHTML=head+body;
+    $("previewNote").textContent = shown.length>limit
+      ? "Mostrando as primeiras "+limit+" de "+shown.length+" linhas. O download inclui todas."
+      : "Mostrando todas as "+shown.length+" linhas.";
+  }
+
+  function escapeHtml(s){return (s==null?"":String(s)).replace(/[&<>]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;"}[c];});}
+
+  // download
+  $("download").addEventListener("click",function(){
+    if(!lastOutput){setStatus("Nada para baixar ainda.","err");return;}
+    var blob=new Blob(["﻿"+lastOutput],{type:"text/csv;charset=utf-8"});
+    var url=URL.createObjectURL(blob);
+    var a=document.createElement("a");
+    a.href=url;a.download=lastFileName;
+    document.body.appendChild(a);a.click();
+    setTimeout(function(){URL.revokeObjectURL(url);a.remove();},100);
+  });
+
+  // copy
+  $("copy").addEventListener("click",function(){
+    if(!lastOutput)return;
+    var btn=this, original=btn.textContent;
+    function done(){btn.textContent="Copiado ✓";setTimeout(function(){btn.textContent=original;},1600);}
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(lastOutput).then(done).catch(fallbackCopy);
+    }else fallbackCopy();
+    function fallbackCopy(){
+      var ta=document.createElement("textarea");ta.value=lastOutput;document.body.appendChild(ta);
+      ta.select();try{document.execCommand("copy");done();}catch(e){}ta.remove();
+    }
+  });
+
+  // init
+  renderUnits();
+
+})();
+</script>
+</body>
+</html>
